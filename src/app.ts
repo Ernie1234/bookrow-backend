@@ -6,6 +6,8 @@ import env from "./configs/envConfig";
 import apiRoutes from "./routes/index";
 import morganMiddleware from "./middlewares/morgan-middleware";
 import { errorHandler } from "./middlewares/error-handler";
+import passport from "passport";
+import "./configs/passport";
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use(morganMiddleware);
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK" });
 });
+app.use(passport.initialize());
+app.use(passport.session());
 app.use("/api/v1", apiRoutes);
 
 // Enhanced Error Handling Middleware (must be the last middleware)

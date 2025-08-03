@@ -5,9 +5,14 @@ import env from "../configs/envConfig";
 
 /**
  * Custom error class for API errors with a specific status code.
+ * It now accepts an optional 'details' argument.
  */
 class ApiError extends Error {
-  constructor(public statusCode: number, message: string) {
+  constructor(
+    public statusCode: number,
+    message: string,
+    public details: any = null
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -28,7 +33,7 @@ const errorHandler = (
   // Determine the status code and message based on the error type.
   let statusCode = 500;
   let message = "Internal Server Error";
-  let details: string | object | null = null;
+  let details: any = null;
 
   // Handle Zod validation errors (e.g., from request body validation)
   if (err instanceof ZodError) {
@@ -40,7 +45,8 @@ const errorHandler = (
     // Handle custom API errors
     statusCode = err.statusCode;
     message = err.message;
-    Logger.error(`ApiError (${statusCode}): ${message}`);
+    details = err.details;
+    Logger.error(`ApiError (${statusCode}): ${message}`, details);
   } else {
     // Handle all other unexpected errors
     Logger.error("Unhandled Server Error:", err);
@@ -49,7 +55,7 @@ const errorHandler = (
   // Only send the error stack in development for debugging purposes
   const errorResponse: {
     message: string;
-    details: string | object | null;
+    details: any;
     stack?: string;
   } = {
     message,
