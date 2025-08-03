@@ -1,11 +1,47 @@
 {
   "name": "backend",
-  "module": "src/index.ts",
+  "module": "src/server.ts",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/server.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "build": "bun build src/server.ts --outfile dist/server.js",
+    "start": "bun run dist/server.js",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/express": "^5.0.3",
+    "@types/cors": "^2.8.18",
+    "@types/morgan": "^1.10.0",
+    "@types/node": "^22.15.27",
+    "@typescript-eslint/eslint-plugin": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "node-cron": "^4.0.7",
+    "dotenv": "^16.5.0",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.15.1",
+    "morgan": "^1.10.0",
+    "winston": "^3.17.0",
+    "zod": "^3.25.42"
   }
 }
