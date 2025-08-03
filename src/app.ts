@@ -5,14 +5,14 @@ import helmet from "helmet";
 import env from "./configs/envConfig";
 import apiRoutes from "./routes/index";
 import morganMiddleware from "./middlewares/morgan-middleware";
-import Logger from "./libs/logger";
+import { errorHandler } from "./middlewares/error-handler";
 
 const app = express();
 
 // Middleware
 app.use(
   cors({
-    origin: [env.MOBILE_APP_BASE_URL],
+    origin: [env.API_URL],
     credentials: true,
   })
 );
@@ -27,20 +27,7 @@ app.get("/health", (req, res) => {
 });
 app.use("/api/v1", apiRoutes);
 
-// Error handling middleware
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    Logger.error(err.stack);
-    res.status(500).json({
-      error: "Internal Server Error",
-      requestId: req.headers["x-request-id"],
-    });
-  }
-);
+// Enhanced Error Handling Middleware (must be the last middleware)
+app.use(errorHandler);
 
 export default app;
