@@ -15,10 +15,12 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/express": "^5.0.3",
     "@types/cors": "^2.8.18",
-    "@types/morgan": "^1.10.0",
+    "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.27",
+    "@types/passport": "^1.0.17",
+    "@types/passport-google-oauth20": "^2.0.16",
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
@@ -34,13 +36,16 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "express": "^5.1.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "node-cron": "^4.0.7",
     "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.15.1",
-    "morgan": "^1.10.0",
+    "morgan": "^1.10.1",
+    "node-cron": "^4.0.7",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "winston": "^3.17.0",
     "zod": "^3.25.42"
   }

@@ -5,6 +5,6 @@ import bookRoute from "./bookRoute";
 const apiRouter: Router = Router();
 
 apiRouter.use("/auth", authRoute);
-apiRouter.use("/book", bookRoute);
+apiRouter.use("/books", bookRoute);
 
 export default apiRouter;
