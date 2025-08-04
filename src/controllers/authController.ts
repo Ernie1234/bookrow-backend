@@ -1,13 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import passport from "passport";
-import { registerUser } from "../services/authService";
+import { loginUser, registerUser } from "../services/authService";
 import { ApiError } from "../middlewares/error-handler";
 import {
+  LoginData,
+  loginSchema,
   RegisterData,
   registerSchema,
 } from "../validation/authValidationSchema";
-import { generateTokens } from "@/services/tokenService";
 
 /**
  * @function register
@@ -75,4 +76,34 @@ export const getUserProfile = (req: Request, res: Response) => {
     message: "User profile fetched successfully",
     user: req.user,
   });
+};
+
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const validatedBody: LoginData = loginSchema.parse(req.body);
+    const { user, tokens } = await loginUser(validatedBody);
+
+    res.status(200).json({
+      message: "Login successful",
+      success: true,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        userImage: user.userImage,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(error);
+    }
+    next(new ApiError(401, "Login failed", error));
+  }
 };

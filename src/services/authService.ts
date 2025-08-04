@@ -1,7 +1,13 @@
-import UserModel, { IUser } from "../models/User";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
+
+import UserModel, { IUser } from "../models/User";
 import Logger from "../libs/logger";
-import { registerSchema } from "../validation/authValidationSchema";
+import {
+  LoginData,
+  loginSchema,
+  registerSchema,
+} from "../validation/authValidationSchema";
 import { generateTokens } from "./tokenService";
 
 type RegisterData = z.infer<typeof registerSchema>;
@@ -91,4 +97,39 @@ export const findOrCreateGoogleUser = async (
 
   Logger.info(`User authenticated via Google: ${user.email}`);
   return user;
+};
+
+export const loginUser = async (
+  loginData: LoginData
+): Promise<{
+  user: IUser;
+  tokens: { accessToken: string; refreshToken: string };
+}> => {
+  try {
+    const validatedData = loginSchema.parse(loginData);
+    const user = await UserModel.findOne({ email: validatedData.email });
+
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      validatedData.password,
+      user.password as string
+    );
+
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+
+    const tokens = generateTokens(user);
+    Logger.info(`User logged in: ${user.email}`);
+
+    return { user, tokens };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error("Validation failed during login");
+    }
+    throw error;
+  }
 };
