@@ -2,6 +2,7 @@ import UserModel, { IUser } from "../models/User";
 import { z } from "zod";
 import Logger from "../libs/logger";
 import { registerSchema } from "../validation/authValidationSchema";
+import { generateTokens } from "./tokenService";
 
 type RegisterData = z.infer<typeof registerSchema>;
 
@@ -10,7 +11,13 @@ type RegisterData = z.infer<typeof registerSchema>;
  * @param userData - The user registration data.
  * @returns A promise that resolves to the new user document.
  */
-export const registerUser = async (userData: RegisterData): Promise<IUser> => {
+// services/authService.ts
+export const registerUser = async (
+  userData: RegisterData
+): Promise<{
+  user: IUser;
+  tokens: { accessToken: string; refreshToken: string };
+}> => {
   try {
     const validatedData = registerSchema.parse(userData);
 
@@ -22,10 +29,12 @@ export const registerUser = async (userData: RegisterData): Promise<IUser> => {
     }
 
     const user = new UserModel(validatedData);
-    await user.save();
+    await user.save(); // Save first to get the _id
+
+    const tokens = generateTokens(user); // Generate tokens after saving
 
     Logger.info(`New user registered: ${user.email}`);
-    return user;
+    return { user, tokens };
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error("Validation failed during registration.");

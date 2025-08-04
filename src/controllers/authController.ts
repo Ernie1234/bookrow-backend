@@ -7,6 +7,7 @@ import {
   RegisterData,
   registerSchema,
 } from "../validation/authValidationSchema";
+import { generateTokens } from "@/services/tokenService";
 
 /**
  * @function register
@@ -19,11 +20,13 @@ export const register = async (
 ) => {
   try {
     const validatedBody: RegisterData = registerSchema.parse(req.body);
-    const user = await registerUser(validatedBody);
+    const { user, tokens } = await registerUser(validatedBody);
 
     res.status(201).json({
       message: "User registered successfully",
       success: true,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: {
         id: user._id,
         username: user.username,
