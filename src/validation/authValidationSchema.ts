@@ -1,33 +1,40 @@
+// validation/authValidationSchema.ts
 import { z } from "zod";
 
-// Zod schema for user registration data validation with custom messages
+const usernameSchema = z
+  .string()
+  .min(3, { message: "Username must be at least 3 characters long" })
+  .max(30, { message: "Username cannot exceed 30 characters" })
+  .regex(/^[a-zA-Z0-9_]+$/, {
+    message: "Username can only contain letters, numbers, and underscores",
+  });
+
+const emailSchema = z
+  .string()
+  .email({ message: "Please provide a valid email address" });
+
+const passwordSchema = z
+  .string()
+  .min(8, { message: "Password must be at least 8 characters long" })
+  .regex(/[A-Z]/, {
+    message: "Password must contain at least one uppercase letter",
+  })
+  .regex(/[a-z]/, {
+    message: "Password must contain at least one lowercase letter",
+  })
+  .regex(/[0-9]/, { message: "Password must contain at least one number" })
+  .regex(/[^A-Za-z0-9]/, {
+    message: "Password must contain at least one special character",
+  });
+
 export const registerSchema = z.object({
-  username: z
-    .string({
-      required_error: "Username is required",
-      invalid_type_error: "Username must be a string",
-    })
-    .min(3, "Username must be at least 3 characters long"),
-  email: z
-    .string({
-      required_error: "Email is required",
-    })
-    .email("Invalid email address"),
-  password: z
-    .string({
-      required_error: "Password is required",
-    })
-    .min(6, "Password must be at least 6 characters long"),
-  role: z
-    .enum(["USER", "ADMIN"], {
-      invalid_type_error: "Role must be 'USER' or 'ADMIN'",
-    })
-    .optional(),
+  username: usernameSchema,
+  email: emailSchema,
+  password: passwordSchema,
+  role: z.enum(["USER", "ADMIN"]).optional().default("USER"),
   userImage: z
-    .string({
-      invalid_type_error: "User image URL must be a string",
-    })
-    .url("Invalid URL for user image")
+    .string()
+    .url({ message: "Please provide a valid URL for the user image" })
     .optional(),
 });
 
