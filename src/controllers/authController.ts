@@ -1,6 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import passport from "passport";
+import jwt from "jsonwebtoken";
+
+import env from "../configs/envConfig";
 import { loginUser, registerUser } from "../services/authService";
 import { ApiError } from "../middlewares/error-handler";
 import {
@@ -105,5 +108,53 @@ export const login = async (
       return next(error);
     }
     next(new ApiError(401, "Login failed", error));
+  }
+};
+
+export const verifyToken = async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ valid: false });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    jwt.verify(token, env.JWT_SECRET!);
+    res.json({ valid: true });
+  } catch (error) {
+    res.status(401).json({ valid: false });
+  }
+};
+
+// controllers/authController.ts
+export const refreshToken = async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  try {
+    const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET!) as {
+      userId: string;
+    };
+
+    // Generate new tokens
+    const newAccessToken = jwt.sign(
+      { userId: decoded.userId },
+      env.JWT_SECRET!,
+      { expiresIn: "15m" }
+    );
+
+    const newRefreshToken = jwt.sign(
+      { userId: decoded.userId },
+      env.JWT_REFRESH_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (error) {
+    res.status(401).json({ message: "Invalid refresh token" });
   }
 };
