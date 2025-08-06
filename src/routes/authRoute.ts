@@ -7,6 +7,7 @@ import {
   register,
   verifyToken,
 } from "../controllers/authController";
+import { googleAuthMiddleware } from "@/middlewares/authMiddleware";
 
 const router = Router();
 
@@ -18,6 +19,6 @@ router.post("/refresh", refreshToken);
 
 // Google OAuth routes
 router.get("/google", googleAuth);
-router.get("/google/callback", googleAuthCallback);
+router.get("/google/callback", googleAuthMiddleware, googleAuthCallback);
 
 export default router;

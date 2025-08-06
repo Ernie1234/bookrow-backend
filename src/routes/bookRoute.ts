@@ -1,3 +1,4 @@
+// src/routes/bookRoutes.ts
 import { Router } from "express";
 import {
   createBook,
@@ -9,14 +10,19 @@ import {
   updateProgress,
 } from "../controllers/bookController";
 
+// Import the middleware
+import { protect } from "../middlewares/authMiddleware";
+
 const router = Router();
 
-router.route("/").post(createBook).get(getBooks);
+// Get all books doesn't need protection if you want it to be public
+router.get("/", getBooks);
 
-router.route("/:id").get(getBookById).put(updateBook).delete(deleteBook);
-
-router.route("/current").put(setCurrentBook);
-
-router.route("/:id/progress").put(updateProgress);
+// All other routes for creating, updating, and deleting books should be protected
+router.post("/", protect, createBook);
+router.put("/current", protect, setCurrentBook);
+router.put("/:id", protect, updateBook);
+router.put("/:id/progress", protect, updateProgress);
+router.delete("/:id", protect, deleteBook);
 
 export default router;

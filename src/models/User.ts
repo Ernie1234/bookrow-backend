@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 // Define a type for the user document with all properties.
 // Mongoose will add _id and __v automatically.
 export interface IUser extends Document {
+  _id: Types.ObjectId;
   username: string;
   email: string;
   password?: string;
@@ -12,12 +13,14 @@ export interface IUser extends Document {
   googleId?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  currentBook?: Types.ObjectId; // New field
+  currentBook?: Types.ObjectId;
+  readingGroups?: Types.ObjectId[];
   readingNotifications?: {
     bookId: Types.ObjectId;
     message: string;
     read: boolean;
     createdAt: Date;
+    type: "schedule_reminder" | "chat_message" | "group_invite";
   }[];
 }
 
@@ -64,12 +67,22 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: "Book",
     },
+    readingGroups: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "ReadingGroup",
+      },
+    ],
     readingNotifications: [
       {
         bookId: { type: Schema.Types.ObjectId, ref: "Book" },
         message: String,
         read: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now },
+        type: {
+          type: String,
+          enum: ["schedule_reminder", "chat_message", "group_invite"],
+        },
       },
     ],
   },

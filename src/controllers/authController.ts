@@ -7,11 +7,16 @@ import env from "../configs/envConfig";
 import { loginUser, registerUser } from "../services/authService";
 import { ApiError } from "../middlewares/error-handler";
 import {
-  LoginData,
   loginSchema,
-  RegisterData,
   registerSchema,
 } from "../validation/authValidationSchema";
+import type {
+  LoginData,
+  RegisterData,
+} from "../validation/authValidationSchema";
+import Logger from "@/libs/logger";
+import { generateTokens } from "@/services/tokenService";
+import UserModel from "@/models/User";
 
 /**
  * @function register
@@ -62,8 +67,14 @@ export const googleAuth = passport.authenticate("google", {
  * @description Handles the callback from Google OAuth 2.0.
  */
 export const googleAuthCallback = (req: Request, res: Response) => {
-  // Authentication successful, redirect or send a token
-  res.redirect("/api/v1/profile");
+  if (!req.user) {
+    return res.status(401).json({ message: "User not authenticated." });
+  }
+
+  const tokens = generateTokens(req.user);
+  res.redirect(
+    `/auth-success?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`
+  );
 };
 
 /**
@@ -100,7 +111,11 @@ export const login = async (
         username: user.username,
         email: user.email,
         role: user.role,
-        userImage: user.userImage,
+        currentBook: user.currentBook,
+        createAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        readingGroups: user.readingGroups,
+        readingNotifications: user.readingNotifications,
       },
     });
   } catch (error) {
@@ -127,34 +142,30 @@ export const verifyToken = async (req: Request, res: Response) => {
     res.status(401).json({ valid: false });
   }
 };
+export const refreshToken = async (oldRefreshToken: string) => {
+  // Verify token
+  const decoded = jwt.verify(oldRefreshToken, env.JWT_REFRESH_SECRET!) as {
+    userId: string;
+  };
 
-// controllers/authController.ts
-export const refreshToken = async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
+  // Check if token exists in DB (you'll need to add this to your User model)
+  const user = await UserModel.findOne({
+    _id: decoded.userId,
+    refreshTokens: oldRefreshToken,
+  });
 
-  try {
-    const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET!) as {
-      userId: string;
-    };
-
-    // Generate new tokens
-    const newAccessToken = jwt.sign(
-      { userId: decoded.userId },
-      env.JWT_SECRET!,
-      { expiresIn: "15m" }
-    );
-
-    const newRefreshToken = jwt.sign(
-      { userId: decoded.userId },
-      env.JWT_REFRESH_SECRET!,
-      { expiresIn: "7d" }
-    );
-
-    res.json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    });
-  } catch (error) {
-    res.status(401).json({ message: "Invalid refresh token" });
+  if (!user) {
+    throw new Error("Invalid refresh token");
   }
+
+  // Generate new tokens
+  const tokens = generateTokens(user);
+
+  // Update user's refresh tokens
+  await UserModel.findByIdAndUpdate(user._id, {
+    $pull: { refreshTokens: oldRefreshToken },
+    $push: { refreshTokens: tokens.refreshToken },
+  });
+
+  return tokens;
 };

@@ -1,5 +1,6 @@
 import UserModel from "@/models/User";
-import BookModel, { IBook } from "../models/bookModel";
+import BookModel from "../models/bookModel";
+import type { IBook } from "@/models/bookModel";
 import { Types } from "mongoose";
 
 export const createBook = async (

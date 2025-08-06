@@ -1,13 +1,14 @@
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 
-import UserModel, { IUser } from "../models/User";
+import UserModel from "../models/User";
+import type { IUser } from "../models/User";
 import Logger from "../libs/logger";
 import {
-  LoginData,
   loginSchema,
   registerSchema,
 } from "../validation/authValidationSchema";
+import type { LoginData } from "../validation/authValidationSchema";
 import { generateTokens } from "./tokenService";
 
 type RegisterData = z.infer<typeof registerSchema>;
@@ -34,7 +35,15 @@ export const registerUser = async (
       throw new Error("User with that email already exists.");
     }
 
-    const user = new UserModel(validatedData);
+    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${validatedData.username}`;
+
+    // Add the generated avatar URL to the validated data before creating the user
+    const userWithAvatarData = {
+      ...validatedData,
+      userImage: avatarUrl,
+    };
+
+    const user = new UserModel(userWithAvatarData);
     await user.save(); // Save first to get the _id
 
     const tokens = generateTokens(user); // Generate tokens after saving

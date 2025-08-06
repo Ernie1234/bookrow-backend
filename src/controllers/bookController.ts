@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import * as bookService from "../services/bookService";
 import Logger from "@/libs/logger";
 
@@ -12,7 +12,9 @@ const handleError = (res: Response, error: any, status: number = 500) => {
 // @desc    Create a new book
 export const createBook = async (req: Request, res: Response) => {
   try {
-    // Assuming userId is available from authentication middleware
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "User not authenticated." });
+    }
     const userId = req.user._id;
     const book = await bookService.createBook(req.body, userId);
     res.status(201).json(book);
@@ -78,6 +80,12 @@ export const deleteBook = async (req: Request, res: Response) => {
 // @desc    Set the user's current book
 export const setCurrentBook = async (req: Request, res: Response) => {
   try {
+    // Add an explicit check for the user object
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "User not authenticated." });
+    }
+
+    // With this check, the compiler is happy.
     const userId = req.user._id;
     const { bookId } = req.body;
     const user = await bookService.setCurrentBook(userId, bookId);
