@@ -14,14 +14,14 @@ export const generateTokens = (user: IUser) => {
       userImage: user.userImage,
     },
     env.JWT_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "1h" } // 1 hour
   );
 
   const refreshToken = jwt.sign(
     { userId: user._id, username: user.username, email: user.email },
     env.JWT_REFRESH_SECRET!,
     {
-      expiresIn: "7d",
+      expiresIn: "7d", // 7 days
     }
   );
 

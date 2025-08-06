@@ -22,6 +22,7 @@ export interface IUser extends Document {
     createdAt: Date;
     type: "schedule_reminder" | "chat_message" | "group_invite";
   }[];
+  tokenVersion: number;
 }
 
 // Create a Mongoose schema for the user
@@ -85,6 +86,10 @@ const userSchema = new Schema<IUser>(
         },
       },
     ],
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -169,3 +169,21 @@ export const refreshToken = async (oldRefreshToken: string) => {
 
   return tokens;
 };
+
+// In your authController.ts
+export const logout = async (req: Request, res: Response) => {
+  try {
+    // Increment token version to invalidate all refresh tokens
+    await UserModel.findByIdAndUpdate(req.user?._id, {
+      $inc: { tokenVersion: 1 },
+    });
+
+    // Clear cookies if using them
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Logout failed" });
+  }
+};

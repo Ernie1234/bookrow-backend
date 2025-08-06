@@ -11,7 +11,8 @@ import {
 } from "../controllers/bookController";
 
 // Import the middleware
-import { protect } from "../middlewares/authMiddleware";
+import { protect } from "@/middlewares/authMiddleware";
+import { attachNewTokens } from "@/middlewares/refreshTokenMiddleware";
 
 const router = Router();
 
@@ -19,10 +20,10 @@ const router = Router();
 router.get("/", getBooks);
 
 // All other routes for creating, updating, and deleting books should be protected
-router.post("/", protect, createBook);
-router.put("/current", protect, setCurrentBook);
-router.put("/:id", protect, updateBook);
-router.put("/:id/progress", protect, updateProgress);
-router.delete("/:id", protect, deleteBook);
+router.post("/", protect, attachNewTokens, createBook);
+router.put("/current", protect, attachNewTokens, setCurrentBook);
+router.put("/:id", protect, attachNewTokens, updateBook);
+router.put("/:id/progress", protect, attachNewTokens, updateProgress);
+router.delete("/:id", protect, attachNewTokens, deleteBook);
 
 export default router;
