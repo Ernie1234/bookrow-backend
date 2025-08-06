@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 import bcrypt from "bcryptjs";
 
 // Define a type for the user document with all properties.
@@ -12,6 +12,13 @@ export interface IUser extends Document {
   googleId?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  currentBook?: Types.ObjectId; // New field
+  readingNotifications?: {
+    bookId: Types.ObjectId;
+    message: string;
+    read: boolean;
+    createdAt: Date;
+  }[];
 }
 
 // Create a Mongoose schema for the user
@@ -53,6 +60,18 @@ const userSchema = new Schema<IUser>(
       unique: true,
       sparse: true,
     },
+    currentBook: {
+      type: Schema.Types.ObjectId,
+      ref: "Book",
+    },
+    readingNotifications: [
+      {
+        bookId: { type: Schema.Types.ObjectId, ref: "Book" },
+        message: String,
+        read: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,
